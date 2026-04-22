@@ -59,15 +59,11 @@ static void fill_img(int img[H][W])
     }
 }
 
-/*
- * Construção da imagem integral (Summed Area Table).
- * integral[r][c] = soma de img[0..r][0..c].
- * Complexidade: O(H×W).
- */
-static void build_integral(int img[H][W], int integral[H][W])
+
+static void build_integral(int img[H][W], long integral[H][W])
 {
     int r, c;
-    int row_running_sum;
+    long row_running_sum;
 
     for (r = 0; r < H; r++)
     {
@@ -75,52 +71,48 @@ static void build_integral(int img[H][W], int integral[H][W])
 
         for (c = 0; c < W; c++)
         {
-            row_running_sum += img[r][c];
+            row_running_sum += (long)img[r][c];
 
             integral[r][c] = row_running_sum +
-                             ((r > 0) ? integral[r - 1][c] : 0);
+                             ((r > 0) ? integral[r - 1][c] : 0L);
         }
     }
 }
 
-/*
- * Soma de uma sub-região retangular em O(1) usando 4 acessos.
- * Coordenadas inclusivas: (r1,c1) canto superior-esquerdo, (r2,c2) inferior-direito.
- * Retorna 0 para parâmetros inválidos.
- */
-static int sum_region(int integral[H][W], int r1, int c1, int r2, int c2)
+
+static long sum_region(long integral[H][W], int r1, int c1, int r2, int c2)
 {
-    int A, B, C, D;
+    long A, B, C, D;
 
     if (r1 < 0 || c1 < 0 || r2 < 0 || c2 < 0)
-        return 0;
+        return 0L;
 
     if (r1 >= H || r2 >= H || c1 >= W || c2 >= W)
-        return 0;
+        return 0L;
 
     if (r1 > r2 || c1 > c2)
-        return 0;
+        return 0L;
 
     A = integral[r2][c2];
-    B = (r1 > 0) ? integral[r1 - 1][c2] : 0;
-    C = (c1 > 0) ? integral[r2][c1 - 1] : 0;
-    D = (r1 > 0 && c1 > 0) ? integral[r1 - 1][c1 - 1] : 0;
+    B = (r1 > 0) ? integral[r1 - 1][c2] : 0L;
+    C = (c1 > 0) ? integral[r2][c1 - 1] : 0L;
+    D = (r1 > 0 && c1 > 0) ? integral[r1 - 1][c1 - 1] : 0L;
 
     return A - B - C + D;
 }
 
-static int naive_sum_region(int img[H][W], int r1, int c1, int r2, int c2)
+static long naive_sum_region(int img[H][W], int r1, int c1, int r2, int c2)
 {
     int r, c;
-    int sum;
+    long sum;
 
-    sum = 0;
+    sum = 0L;
 
     for (r = r1; r <= r2; r++)
     {
         for (c = c1; c <= c2; c++)
         {
-            sum += img[r][c];
+            sum += (long)img[r][c];
         }
     }
 
@@ -135,8 +127,9 @@ static unsigned long lcg_next(unsigned long *state)
 
 int main(void)
 {
+    /* static para evitar estouro de pilha (stack) em sistemas pequenos */
     static int img[H][W];
-    static int integral[H][W];
+    static long integral[H][W];
 
     int ok;
     int t;
@@ -147,11 +140,11 @@ int main(void)
     {
         int r1, c1, r2, c2;
     } queries[] = {
-        {0, 0, 0, 0},
+        {4, 1, 3, 0},
         {0, 0, 1, 1},
         {10, 10, 20, 20},
         {0, 0, H - 1, W - 1},
-        {5, 7, 5, 20},
+        {5, 7, 5, 20}
     };
 
     ok = 1;
@@ -165,7 +158,7 @@ int main(void)
     for (i = 0; i < (unsigned)(sizeof(queries) / sizeof(queries[0])); i++)
     {
         int r1, c1, r2, c2;
-        int fast, slow;
+        long fast, slow;
 
         r1 = queries[i].r1;
         c1 = queries[i].c1;
@@ -175,7 +168,8 @@ int main(void)
         fast = sum_region(integral, r1, c1, r2, c2);
         slow = naive_sum_region(img, r1, c1, r2, c2);
 
-        printf("Q%u: (%d,%d) -> (%d,%d)  O(1)=%d  naive=%d  %s\n",
+        /* %ld para imprimir o tipo long */
+        printf("Q%u: (%d,%d) -> (%d,%d)  O(1)=%ld  naive=%ld  %s\n",
                i + 1, r1, c1, r2, c2, fast, slow,
                (fast == slow) ? "OK" : "ERRO");
     }
@@ -183,26 +177,15 @@ int main(void)
     for (t = 0; t < 200; t++)
     {
         int r1, r2, c1, c2, tmp;
-        int fast, slow;
+        long fast, slow;
 
-        r1 = (int)(lcg_next(&rng) % H);
-        r2 = (int)(lcg_next(&rng) % H);
-        c1 = (int)(lcg_next(&rng) % W);
-        c2 = (int)(lcg_next(&rng) % W);
+        r1 = (int)(lcg_next(&rng) % (unsigned long)H);
+        r2 = (int)(lcg_next(&rng) % (unsigned long)H);
+        c1 = (int)(lcg_next(&rng) % (unsigned long)W);
+        c2 = (int)(lcg_next(&rng) % (unsigned long)W);
 
-        if (r1 > r2)
-        {
-            tmp = r1;
-            r1 = r2;
-            r2 = tmp;
-        }
-
-        if (c1 > c2)
-        {
-            tmp = c1;
-            c1 = c2;
-            c2 = tmp;
-        }
+        if (r1 > r2) { tmp = r1; r1 = r2; r2 = tmp; }
+        if (c1 > c2) { tmp = c1; c1 = c2; c2 = tmp; }
 
         fast = sum_region(integral, r1, c1, r2, c2);
         slow = naive_sum_region(img, r1, c1, r2, c2);
@@ -210,7 +193,7 @@ int main(void)
         if (fast != slow)
         {
             ok = 0;
-            printf("Falha: (%d,%d)->(%d,%d) O(1)=%d naive=%d\n",
+            printf("Falha: (%d,%d)->(%d,%d) O(1)=%ld naive=%ld\n",
                    r1, c1, r2, c2, fast, slow);
             break;
         }
