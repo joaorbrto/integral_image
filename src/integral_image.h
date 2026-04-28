@@ -9,8 +9,10 @@
 #ifndef INTEGRAL_IMAGE_H
 #define INTEGRAL_IMAGE_H
 
-#define H 64
-#define W 64
+#include <stdint.h>
+
+#define H 45
+#define W 45
 
 /*
  * Constrói a Integral Image a partir de img[].
@@ -18,7 +20,7 @@
  * pixels de (0,0) ate (r,c).
  * Complexidade: O(H x W)
  */
-void build_integral(int img[H][W], long integral[H][W]);
+void build_integral(int img[H][W], int32_t integral[H][W]);
 
 /*
  * Constrói a Integral Image sobrescrevendo a propria matriz.
@@ -32,7 +34,7 @@ void build_integral(int img[H][W], long integral[H][W]);
  *
  * Complexidade: O(H x W)
  */
-void build_integral_inplace(long img[H][W]);
+void build_integral_inplace(int32_t img[H][W]);
 
 /*
  * Retorna a soma dos pixels dentro do retangulo (r1,c1)->(r2,c2)
@@ -40,6 +42,6 @@ void build_integral_inplace(long img[H][W]);
  * Complexidade: O(1)
  * Retorna 0 se as coordenadas forem invalidas.
  */
-long sum_region(long integral[H][W], int r1, int c1, int r2, int c2);
+int32_t sum_region(int32_t integral[H][W], int r1, int c1, int r2, int c2);
 
 #endif /* INTEGRAL_IMAGE_H */

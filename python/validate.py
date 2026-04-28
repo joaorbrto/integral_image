@@ -4,7 +4,7 @@ import subprocess
 import sys
 import os
 
-H, W = 64, 64
+H, W = 45, 45
 
 # Mesma imagem sintetica gerada em src/main.c.
 img = np.fromfunction(lambda r, c: (r + c) & 0xFF, (H, W), dtype=np.int32)

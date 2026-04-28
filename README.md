@@ -129,7 +129,7 @@ python validate.py
 ### `src/integral_image.h`
 
 Define:
-- as dimensoes fixas da imagem: `H = 64` e `W = 64`
+- as dimensoes fixas da imagem: `H = 45` e `W = 45`
 - a interface publica do modulo
 
 Funcoes expostas:
@@ -298,7 +298,7 @@ Em outras palavras:
 
 O projeto atende aos requisitos propostos porque:
 - usa lacos de repeticao aninhados sobre matriz bidimensional
-- usa matrizes estaticas de tamanho fixo `64x64`
+- usa matrizes estaticas de tamanho fixo `45x45`
 - nao usa recursividade
 - nao usa alocacao dinamica
 - e adequado para contexto embarcado
@@ -315,10 +315,17 @@ Isso foi feito para reduzir risco de overflow acumulado nas somas.
 
 ## Memoria Utilizada
 
-Cada matriz `64x64` possui:
+Cada matriz `45x45` possui:
 
 ```text
-64 x 64 = 4096 elementos
+45 x 45 = 2025 elementos
+```
+
+No modo **in-place** (um unico buffer integral), usando `int32_t` (4 bytes), isso
+equivale a aproximadamente:
+
+```text
+2025 x 4 = 8100 bytes (~8 KB)
 ```
 
 Existem dois cenarios de uso:
