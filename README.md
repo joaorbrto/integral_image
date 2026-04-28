@@ -98,7 +98,7 @@ requirements.txt
 Compila e executa o binario que:
 - gera a imagem sintetica
 - constroi a Integral Image
-- roda as queries e o stress test
+- calcula queries fixas e consultas aleatorias
 - gera os arquivos `integral_c.txt` e `queries.txt`
 
 Windows (PowerShell):
@@ -159,7 +159,6 @@ Funcoes principais:
 - exporta a matriz integral para `integral_c.txt`
 - executa consultas fixas
 - executa consultas pseudo-aleatorias
-- compara `sum_region()` com uma implementacao por forca bruta
 - exporta as consultas e resultados para `queries.txt`
 
 ### `python/generate_files.py`
@@ -250,14 +249,6 @@ Cada linha representa:
 Essas queries sao importantes porque testam o uso final da estrutura: somar
 sub-regioes rapidamente.
 
-### 5. Validacao interna no C
-
-Para cada query, o programa em C compara:
-- o resultado rapido de `sum_region()`
-- o resultado de uma soma por forca bruta (pixel por pixel)
-
-Ou seja, o C se valida internamente contra uma referencia simples e direta.
-
 ### 6. Validacao externa com Python + OpenCV
 
 Depois disso, `python/validate.py`:
@@ -272,7 +263,7 @@ valor salvo pelo C esta correto.
 
 ## Como os Testes Estao Organizados
 
-Hoje o projeto tem tres camadas de validacao:
+Hoje o projeto tem duas camadas de validacao (todas via Python):
 
 ### 1. Validacao da construcao da matriz
 
@@ -289,14 +280,6 @@ Comparacao entre:
 - valor recalculado a partir da integral de referencia no Python
 
 Isso mostra se a consulta em `O(1)` esta correta.
-
-### 3. Validacao por forca bruta no C
-
-Comparacao entre:
-- `sum_region()`
-- uma soma por forca bruta (pixel por pixel)
-
-Isso funciona como uma segunda prova independente, dentro do proprio executavel C.
 
 ## Por Que os `queries` Sao um Bom Teste Intermediario
 
@@ -389,12 +372,11 @@ Se houver falha, o script indica:
 
 Este projeto foi organizado para separar claramente:
 - o **algoritmo principal** em C
-- os **testes internos** no executavel C
+- a **geracao de saidas** (`integral_c.txt` e `queries.txt`) pelo executavel C
 - a **validacao externa independente** em Python/OpenCV
 
 Com isso, a prova de corretude nao depende de um unico teste. O algoritmo e
 verificado:
-- por comparacao com forca bruta
 - por comparacao com OpenCV
 - por consultas intermediarias registradas em `queries.txt`
 

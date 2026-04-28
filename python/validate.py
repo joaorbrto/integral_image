@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import subprocess
 import sys
+import os
 
 H, W = 64, 64
 
@@ -48,7 +49,10 @@ def ensure_integral_from_c():
     O Python nao escreve `integral_c.txt`; ele apenas chama o binario C.
     A matriz carregada depois vem do algoritmo implementado em C.
     """
-    compile_cmd = ["gcc", "-Wall", "-Wextra", "-o", "teste", "src/main.c", "src/integral_image.c"]
+    exe_name = "teste.exe" if os.name == "nt" else "teste"
+    run_cmd = [exe_name] if os.name == "nt" else ["./" + exe_name]
+
+    compile_cmd = ["gcc", "-Wall", "-Wextra", "-o", exe_name, "src/main.c", "src/integral_image.c"]
     print("Compilando programa C para gerar integral_c.txt...")
     res = subprocess.run(compile_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
@@ -56,9 +60,9 @@ def ensure_integral_from_c():
         sys.exit(1)
 
     print("Executando binario C para gerar arquivos...")
-    res = subprocess.run(["./teste"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    res = subprocess.run(run_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res.returncode != 0:
-        print("Erro ao executar ./teste:\n", res.stderr)
+        print(f"Erro ao executar {' '.join(run_cmd)}:\n", res.stderr)
         sys.exit(1)
 
     print("Arquivo integral_c.txt gerado pelo programa C.")

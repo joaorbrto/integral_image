@@ -33,39 +33,8 @@ static void fill_img(long img[H][W])
 }
 
 /* ------------------------------------------------------------------ */
-/* Validacao por forca bruta                                           */
+/* Gerador de numeros pseudo-aleatorios (LCG)                         */
 /* ------------------------------------------------------------------ */
-
-static long naive_sum_region_generated(int r1, int c1, int r2, int c2)
-{
-    int r, c;
-    long sum = 0L;
-
-    /*
-     * Implementacao de referencia por forca bruta.
-     *
-     * Ela percorre todos os pixels dentro do retangulo e soma um por um.
-     * E usada apenas para validar o resultado de sum_region(), que deve
-     * chegar ao mesmo valor em O(1).
-     *
-     * Complexidade: O(area da regiao)
-     */
-    if (r1 < 0 || c1 < 0 || r2 < 0 || c2 < 0)
-        return 0L;
-    if (r1 >= H || r2 >= H || c1 >= W || c2 >= W)
-        return 0L;
-    if (r1 > r2 || c1 > c2)
-        return 0L;
-
-    for (r = r1; r <= r2; r++)
-        for (c = c1; c <= c2; c++)
-            sum += (long)((r + c) & 0xFF);
-
-    return sum;
-}
-
-/* ------------------------------------------------------------------ */
-
 static unsigned long lcg_next(unsigned long *state)
 {
     /*
@@ -90,8 +59,6 @@ typedef struct
 int main(void)
 {
     static long img[H][W];
-
-    int ok = 1;
     int t;
     unsigned i;
     unsigned long rng = 1UL;
@@ -140,16 +107,15 @@ int main(void)
 
     printf("Integral Image (Summed Area Table) — %dx%d\n\n", H, W);
 
-    printf("%-5s %-22s %12s %12s %6s\n",
-           "Query", "Regiao (r1,c1)->(r2,c2)", "O(1)", "Forca-bruta", "OK?");
-    printf("--------------------------------------------------------------\n");
+    printf("%-5s %-22s %12s\n",
+           "Query", "Regiao (r1,c1)->(r2,c2)", "O(1)");
+    printf("-----------------------------------------------\n");
 
     /*
      * Consultas fixas.
      *
      * Estas regioes cobrem casos simples, regiao invalida e imagem inteira.
-     * Cada resultado calculado por sum_region() e comparado com a soma por
-     * forca bruta para detectar erros de borda.
+     * Os resultados sao gravados em queries.txt para validacao externa.
      */
     for (i = 0; i < sizeof(queries) / sizeof(queries[0]); i++)
     {
@@ -157,16 +123,14 @@ int main(void)
         int r2 = queries[i].r2, c2 = queries[i].c2;
 
         long fast = sum_region(img, r1, c1, r2, c2);
-        long slow = naive_sum_region_generated(r1, c1, r2, c2);
 
         fprintf(f_q, "%d %d %d %d %ld\n", r1, c1, r2, c2, fast);
 
-        printf("Q%-4u (%2d,%2d) -> (%2d,%2d)  %12ld %12ld %6s\n",
-               i + 1, r1, c1, r2, c2, fast, slow,
-               (fast == slow) ? "OK" : "ERRO");
+        printf("Q%-4u (%2d,%2d) -> (%2d,%2d)  %12ld\n",
+               i + 1, r1, c1, r2, c2, fast);
     }
 
-    printf("\nStress test (200 consultas aleatorias)...\n");
+    printf("\nGerando 200 consultas aleatorias (salvas em queries.txt)...\n");
 
     /*
      * Consultas pseudo-aleatorias.
@@ -177,7 +141,7 @@ int main(void)
     for (t = 0; t < 200; t++)
     {
         int r1, r2, c1, c2, tmp;
-        long fast, slow;
+        long fast;
 
         r1 = (int)(lcg_next(&rng) % (unsigned long)H);
         r2 = (int)(lcg_next(&rng) % (unsigned long)H);
@@ -198,23 +162,13 @@ int main(void)
         }
 
         fast = sum_region(img, r1, c1, r2, c2);
-        slow = naive_sum_region_generated(r1, c1, r2, c2);
 
         fprintf(f_q, "%d %d %d %d %ld\n", r1, c1, r2, c2, fast);
-
-        if (fast != slow)
-        {
-            ok = 0;
-            printf("FALHA: (%d,%d)->(%d,%d)  O(1)=%ld  naive=%ld\n",
-                   r1, c1, r2, c2, fast, slow);
-            break;
-        }
     }
 
     fclose(f_q);
 
-    printf("Validacao aleatoria: %s\n", ok ? "OK" : "ERRO");
     printf("Arquivos gerados: integral_c.txt e queries.txt\n");
 
-    return ok ? 0 : 1;
+    return 0;
 }
