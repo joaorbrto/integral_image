@@ -39,6 +39,30 @@ void build_integral(int img[H][W], long integral[H][W])
 }
 
 /*
+ * Versao in-place: sobrescreve img[][] com a Integral Image.
+ *
+ * Recorrencia equivalente (com soma acumulada por linha):
+ *   row_running_sum += img[r][c]         (img[r][c] ainda e o pixel original)
+ *   img[r][c] = row_running_sum + img[r-1][c]
+ */
+void build_integral_inplace(long img[H][W])
+{
+    int r, c;
+    long row_running_sum;
+
+    for (r = 0; r < H; r++)
+    {
+        row_running_sum = 0L;
+
+        for (c = 0; c < W; c++)
+        {
+            row_running_sum += img[r][c];
+            img[r][c] = row_running_sum + ((r > 0) ? img[r - 1][c] : 0L);
+        }
+    }
+}
+
+/*
  * Retorna a soma dos pixels dentro do retangulo (r1,c1)->(r2,c2).
  *
  * Identidade usada:
@@ -65,8 +89,8 @@ long sum_region(long integral[H][W], int r1, int c1, int r2, int c2)
         return 0L;
 
     A = integral[r2][c2];
-    B = (r1 > 0)           ? integral[r1 - 1][c2]      : 0L;
-    C = (c1 > 0)           ? integral[r2][c1 - 1]      : 0L;
+    B = (r1 > 0) ? integral[r1 - 1][c2] : 0L;
+    C = (c1 > 0) ? integral[r2][c1 - 1] : 0L;
     D = (r1 > 0 && c1 > 0) ? integral[r1 - 1][c1 - 1] : 0L;
 
     return A - B - C + D;

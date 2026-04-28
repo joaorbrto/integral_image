@@ -5,6 +5,7 @@ Usar: python3 generate_files.py
 """
 import subprocess
 import sys
+import os
 
 
 def run(cmd):
@@ -25,13 +26,16 @@ def run(cmd):
     return res
 
 
-compile_cmd = ["gcc", "-Wall", "-Wextra", "-o", "teste", "src/main.c", "src/integral_image.c"]
+exe_name = "teste.exe" if os.name == "nt" else "teste"
+run_cmd = [exe_name] if os.name == "nt" else ["./" + exe_name]
+
+compile_cmd = ["gcc", "-Wall", "-Wextra", "-o", exe_name, "src/main.c", "src/integral_image.c"]
 
 print("Compilando programa C...")
 run(compile_cmd)
 
 print("Executando programa C para gerar integral_c.txt e queries.txt...")
-res = run(["./teste"])
+res = run(run_cmd)
 
 if res.stdout:
     print(res.stdout, end="")

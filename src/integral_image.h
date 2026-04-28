@@ -21,6 +21,20 @@
 void build_integral(int img[H][W], long integral[H][W]);
 
 /*
+ * Constrói a Integral Image sobrescrevendo a propria matriz.
+ *
+ * Entrada/saida:
+ *   img[r][c] deve conter o valor do pixel na entrada e sera substituido por
+ *   integral[r][c] (soma acumulada de (0,0) ate (r,c)).
+ *
+ * Observacao: o tipo da matriz deve suportar o maior valor acumulado para
+ * evitar overflow.
+ *
+ * Complexidade: O(H x W)
+ */
+void build_integral_inplace(long img[H][W]);
+
+/*
  * Retorna a soma dos pixels dentro do retangulo (r1,c1)->(r2,c2)
  * usando apenas 4 acessos a matriz integral.
  * Complexidade: O(1)
