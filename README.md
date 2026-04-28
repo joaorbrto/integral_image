@@ -91,6 +91,39 @@ python/
 requirements.txt
 ```
 
+## Como Rodar
+
+### 1) Rodar o programa C (principal)
+
+Compila e executa o binario que:
+- gera a imagem sintetica
+- constroi a Integral Image
+- roda as queries e o stress test
+- gera os arquivos `integral_c.txt` e `queries.txt`
+
+Windows (PowerShell):
+
+```powershell
+gcc -Wall -Wextra -std=c11 -O2 -o teste src\main.c src\integral_image.c
+./teste.exe
+```
+
+Linux/macOS (bash):
+
+```bash
+gcc -Wall -Wextra -std=c11 -O2 -o teste src/main.c src/integral_image.c
+./teste
+```
+
+### 2) Rodar o teste/validacao completa (Python + OpenCV)
+
+Instala dependencias e executa o validador, que tambem compila e roda o C:
+
+```bash
+python -m pip install -r requirements.txt
+python validate.py
+```
+
 ## Papel de Cada Arquivo
 
 ### `src/integral_image.h`
@@ -101,6 +134,7 @@ Define:
 
 Funcoes expostas:
 - `build_integral(int img[H][W], long integral[H][W])`
+- `build_integral_inplace(long img[H][W])` (sobrescreve a entrada)
 - `sum_region(long integral[H][W], int r1, int c1, int r2, int c2)`
 
 ### `src/integral_image.c`
@@ -109,6 +143,7 @@ Implementa o modulo principal do algoritmo.
 
 Contem:
 - `build_integral()`: monta a Integral Image
+- `build_integral_inplace()`: monta a Integral Image sobrescrevendo a entrada
 - `sum_region()`: responde consultas de soma em `O(1)`
 
 Esse e o codigo central do trabalho.
@@ -120,7 +155,7 @@ validacao no PC.
 
 Funcoes principais:
 - gera uma imagem sintetica deterministica
-- chama `build_integral()`
+- chama `build_integral_inplace()`
 - exporta a matriz integral para `integral_c.txt`
 - executa consultas fixas
 - executa consultas pseudo-aleatorias
@@ -172,10 +207,17 @@ Isso garante que:
 O programa chama:
 
 ```c
-build_integral(img, integral);
+build_integral_inplace(img);
 ```
 
-e produz a matriz integral em C.
+Alternativamente (sem sobrescrever a entrada), e possivel usar dois buffers:
+
+```c
+build_integral(img_int, integral);
+```
+
+Observacao: nesse modo, o tipo do buffer deve suportar o maior valor acumulado
+para evitar overflow.
 
 ### 3. Exportacao da matriz do C
 
@@ -212,7 +254,7 @@ sub-regioes rapidamente.
 
 Para cada query, o programa em C compara:
 - o resultado rapido de `sum_region()`
-- o resultado de `naive_sum_region()`, que soma pixel por pixel
+- o resultado de uma soma por forca bruta (pixel por pixel)
 
 Ou seja, o C se valida internamente contra uma referencia simples e direta.
 
@@ -238,7 +280,7 @@ Comparacao entre:
 - matriz integral produzida pelo C
 - matriz integral de referencia produzida com OpenCV
 
-Isso mostra se `build_integral()` esta correto.
+Isso mostra se `build_integral()` / `build_integral_inplace()` esta correto.
 
 ### 2. Validacao das queries
 
@@ -252,7 +294,7 @@ Isso mostra se a consulta em `O(1)` esta correta.
 
 Comparacao entre:
 - `sum_region()`
-- `naive_sum_region()`
+- uma soma por forca bruta (pixel por pixel)
 
 Isso funciona como uma segunda prova independente, dentro do proprio executavel C.
 
@@ -265,7 +307,7 @@ Usar `queries.txt` como teste intermediario faz bastante sentido porque:
 - ajuda a separar erro de construcao da matriz de erro na formula da consulta
 
 Em outras palavras:
-- se `integral_c.txt` estiver errado, o problema pode estar em `build_integral()`
+- se `integral_c.txt` estiver errado, o problema pode estar em `build_integral()` / `build_integral_inplace()`
 - se a matriz estiver certa, mas as queries falharem, o problema tende a estar em
   `sum_region()`
 
@@ -280,8 +322,11 @@ O projeto atende aos requisitos propostos porque:
 - separa modulo principal e codigo de validacao
 
 Observacao importante sobre tipos:
-- a imagem de entrada usa `int img[64][64]`
-- a matriz integral usa `long integral[64][64]`
+
+- No modo com dois buffers, a imagem pode ser `int img[64][64]` e a integral
+  pode ser `long integral[64][64]`.
+- No modo **in-place**, o mesmo buffer precisa suportar os valores acumulados
+  (no teste do PC, usamos `long img[64][64]`).
 
 Isso foi feito para reduzir risco de overflow acumulado nas somas.
 
@@ -293,12 +338,12 @@ Cada matriz `64x64` possui:
 64 x 64 = 4096 elementos
 ```
 
-No projeto ha pelo menos:
-- uma matriz de entrada `img`
-- uma matriz integral `integral`
+Existem dois cenarios de uso:
 
-Entao o uso total de memoria estatica associado a essas estruturas e superior a
-8 KB, dependendo do tamanho dos tipos no ambiente de compilacao.
+- **Dois buffers**: `img` + `integral` (mais memoria, preserva os pixels).
+- **In-place**: apenas um buffer (menos memoria, perde a imagem original).
+
+O uso exato em bytes depende do tamanho dos tipos no ambiente de compilacao.
 
 ## Aplicacoes do Algoritmo
 
@@ -321,32 +366,6 @@ Instalacao:
 ```bash
 pip install -r requirements.txt
 ```
-
-## Como Compilar e Rodar
-
-### Rodar apenas a geracao dos arquivos pelo C
-
-```bash
-python3 python/generate_files.py
-```
-
-Esse comando:
-- compila `src/main.c` e `src/integral_image.c`
-- executa o binario `./teste`
-- gera `integral_c.txt` e `queries.txt`
-
-### Rodar a validacao completa
-
-```bash
-python3 python/validate.py
-```
-
-Esse comando:
-- compila o C
-- executa o C
-- carrega `integral_c.txt`
-- compara a matriz do C com a referencia do OpenCV
-- valida as queries
 
 ## Saidas Esperadas
 
