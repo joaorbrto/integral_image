@@ -93,7 +93,7 @@ int main(void)
     {
         for (int c = 0; c < W; c++)
         {
-            fprintf(f_mat, "%'" PRId32 " ", img[r][c]);
+            fprintf(f_mat, "%" PRId32 " ", img[r][c]);
         }
         fprintf(f_mat, "\n");
     }

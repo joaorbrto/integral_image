@@ -298,7 +298,7 @@ Em outras palavras:
 
 O projeto atende aos requisitos propostos porque:
 - usa lacos de repeticao aninhados sobre matriz bidimensional
-- usa matrizes estaticas de tamanho fixo `45x45`
+- usa matrizes estaticas de tamanho fixo (`H=45`, `W=45`)
 - nao usa recursividade
 - nao usa alocacao dinamica
 - e adequado para contexto embarcado
@@ -306,10 +306,11 @@ O projeto atende aos requisitos propostos porque:
 
 Observacao importante sobre tipos:
 
-- No modo com dois buffers, a imagem pode ser `int img[64][64]` e a integral
-  pode ser `long integral[64][64]`.
+- No modo com dois buffers, a imagem pode ser `int img[H][W]` e a integral
+  pode ser `int32_t integral[H][W]` (para `H=W=45` com pixels 0..255, `int32_t`
+  e suficiente).
 - No modo **in-place**, o mesmo buffer precisa suportar os valores acumulados
-  (no teste do PC, usamos `long img[64][64]`).
+  (no teste do PC, usamos `int32_t img[H][W]`).
 
 Isso foi feito para reduzir risco de overflow acumulado nas somas.
 
