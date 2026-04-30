@@ -19,10 +19,10 @@
  *
  * Complexidade: O(H x W)
  */
-void build_integral(int img[H][W], long integral[H][W])
+void build_integral(int img[H][W], int32_t integral[H][W])
 {
     int r, c;
-    long row_running_sum;
+    int64_t row_running_sum;
 
     for (r = 0; r < H; r++)
     {
@@ -30,10 +30,10 @@ void build_integral(int img[H][W], long integral[H][W])
 
         for (c = 0; c < W; c++)
         {
-            row_running_sum += (long)img[r][c];
+            row_running_sum += (int64_t)img[r][c];
 
-            integral[r][c] = row_running_sum +
-                             ((r > 0) ? integral[r - 1][c] : 0L);
+            integral[r][c] = (int32_t)(row_running_sum +
+                                       ((r > 0) ? (int64_t)integral[r - 1][c] : 0));
         }
     }
 }
@@ -45,19 +45,19 @@ void build_integral(int img[H][W], long integral[H][W])
  *   row_running_sum += img[r][c]         (img[r][c] ainda e o pixel original)
  *   img[r][c] = row_running_sum + img[r-1][c]
  */
-void build_integral_inplace(long img[H][W])
+void build_integral_inplace(int32_t img[H][W])
 {
     int r, c;
-    long row_running_sum;
+    int64_t row_running_sum;
 
     for (r = 0; r < H; r++)
     {
-        row_running_sum = 0L;
+        row_running_sum = 0;
 
         for (c = 0; c < W; c++)
         {
-            row_running_sum += img[r][c];
-            img[r][c] = row_running_sum + ((r > 0) ? img[r - 1][c] : 0L);
+            row_running_sum += (int64_t)img[r][c];
+            img[r][c] = (int32_t)(row_running_sum + ((r > 0) ? (int64_t)img[r - 1][c] : 0));
         }
     }
 }
@@ -75,23 +75,23 @@ void build_integral_inplace(long img[H][W])
  *
  * Complexidade: O(1)
  */
-long sum_region(long integral[H][W], int r1, int c1, int r2, int c2)
+int32_t sum_region(int32_t integral[H][W], int r1, int c1, int r2, int c2)
 {
-    long A, B, C, D;
+    int64_t A, B, C, D;
 
     if (r1 < 0 || c1 < 0 || r2 < 0 || c2 < 0)
-        return 0L;
+        return 0;
 
     if (r1 >= H || r2 >= H || c1 >= W || c2 >= W)
-        return 0L;
+        return 0;
 
     if (r1 > r2 || c1 > c2)
-        return 0L;
+        return 0;
 
-    A = integral[r2][c2];
-    B = (r1 > 0) ? integral[r1 - 1][c2] : 0L;
-    C = (c1 > 0) ? integral[r2][c1 - 1] : 0L;
-    D = (r1 > 0 && c1 > 0) ? integral[r1 - 1][c1 - 1] : 0L;
+    A = (int64_t)integral[r2][c2];
+    B = (r1 > 0) ? (int64_t)integral[r1 - 1][c2] : 0;
+    C = (c1 > 0) ? (int64_t)integral[r2][c1 - 1] : 0;
+    D = (r1 > 0 && c1 > 0) ? (int64_t)integral[r1 - 1][c1 - 1] : 0;
 
-    return A - B - C + D;
+    return (int32_t)(A - B - C + D);
 }

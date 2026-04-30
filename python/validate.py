@@ -3,8 +3,32 @@ import numpy as np
 import subprocess
 import sys
 import os
+import re
 
-H, W = 64, 64
+
+def read_hw_from_header(header_path=os.path.join("src", "integral_image.h")):
+    """Le H/W definidos no header do modulo em C.
+
+    Mantem o Python sincronizado com o tamanho fixo definido para o projeto.
+    Se nao encontrar as macros, retorna (45, 45) como fallback.
+    """
+
+    try:
+        with open(header_path, "r", encoding="utf-8", errors="replace") as f:
+            text = f.read()
+    except OSError:
+        return 45, 45
+
+    m_h = re.search(r"^\s*#\s*define\s+H\s+(\d+)\s*$", text, flags=re.MULTILINE)
+    m_w = re.search(r"^\s*#\s*define\s+W\s+(\d+)\s*$", text, flags=re.MULTILINE)
+
+    if not m_h or not m_w:
+        return 45, 45
+
+    return int(m_h.group(1)), int(m_w.group(1))
+
+
+H, W = read_hw_from_header()
 
 # Mesma imagem sintetica gerada em src/main.c.
 img = np.fromfunction(lambda r, c: (r + c) & 0xFF, (H, W), dtype=np.int32)
@@ -72,6 +96,10 @@ ensure_integral_from_c()
 # Carrega a matriz exportada pelo C.
 integral_c = np.loadtxt("integral_c.txt", dtype=np.int64)
 
+if integral_c.shape != (H, W):
+    print(f"ERRO: integral_c.txt tem shape {integral_c.shape}, esperado {(H, W)}")
+    sys.exit(1)
+
 # ---------------------------
 # 1. Validação pixel a pixel
 # ---------------------------
@@ -136,6 +164,9 @@ def compare_integral_files(c_file="integral_c.txt", py_file="integral_py.txt"):
     try:
         a_c = np.loadtxt(c_file, dtype=np.int64)
         a_py = np.loadtxt(py_file, dtype=np.int64)
+
+        if a_c.shape != (H, W) or a_py.shape != (H, W):
+            print("Shapes inesperados:", "C=", a_c.shape, "PY=", a_py.shape, "(esperado=", (H, W), ")")
 
         if a_c.shape != a_py.shape:
             print("Formato diferente:", a_c.shape, "vs", a_py.shape)

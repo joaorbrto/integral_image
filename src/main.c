@@ -10,13 +10,15 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include "integral_image.h"
 
 /* ------------------------------------------------------------------ */
 /* Geracao de dados de teste                                           */
 /* ------------------------------------------------------------------ */
 
-static void fill_img(long img[H][W])
+static void fill_img(int32_t img[H][W])
 {
     int r, c;
 
@@ -29,7 +31,7 @@ static void fill_img(long img[H][W])
      */
     for (r = 0; r < H; r++)
         for (c = 0; c < W; c++)
-            img[r][c] = (long)((r + c) & 0xFF);
+            img[r][c] = (int32_t)((r + c) & 0xFF);
 }
 
 /* ------------------------------------------------------------------ */
@@ -58,7 +60,7 @@ typedef struct
 
 int main(void)
 {
-    static long img[H][W];
+    static int32_t img[H][W];
     int t;
     unsigned i;
     unsigned long rng = 1UL;
@@ -91,7 +93,7 @@ int main(void)
     {
         for (int c = 0; c < W; c++)
         {
-            fprintf(f_mat, "%ld ", img[r][c]);
+            fprintf(f_mat, "%" PRId32 " ", img[r][c]);
         }
         fprintf(f_mat, "\n");
     }
@@ -122,11 +124,11 @@ int main(void)
         int r1 = queries[i].r1, c1 = queries[i].c1;
         int r2 = queries[i].r2, c2 = queries[i].c2;
 
-        long fast = sum_region(img, r1, c1, r2, c2);
+        int32_t fast = sum_region(img, r1, c1, r2, c2);
 
-        fprintf(f_q, "%d %d %d %d %ld\n", r1, c1, r2, c2, fast);
+        fprintf(f_q, "%d %d %d %d %" PRId32 "\n", r1, c1, r2, c2, fast);
 
-        printf("Q%-4u (%2d,%2d) -> (%2d,%2d)  %12ld\n",
+        printf("Q%-4u (%2d,%2d) -> (%2d,%2d)  %12" PRId32 "\n",
                i + 1, r1, c1, r2, c2, fast);
     }
 
@@ -141,7 +143,7 @@ int main(void)
     for (t = 0; t < 200; t++)
     {
         int r1, r2, c1, c2, tmp;
-        long fast;
+        int32_t fast;
 
         r1 = (int)(lcg_next(&rng) % (unsigned long)H);
         r2 = (int)(lcg_next(&rng) % (unsigned long)H);
@@ -163,7 +165,7 @@ int main(void)
 
         fast = sum_region(img, r1, c1, r2, c2);
 
-        fprintf(f_q, "%d %d %d %d %ld\n", r1, c1, r2, c2, fast);
+        fprintf(f_q, "%d %d %d %d %" PRId32 "\n", r1, c1, r2, c2, fast);
     }
 
     fclose(f_q);
